@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Background -->
+  <rect width="1080" height="1080" fill="#0c1b2a"/>
+
+  <!-- Title -->
+  <text x="540" y="120" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="44"
+        font-weight="bold"
+        fill="#ffffff">
+    Belle Vue Aces
+  </text>
+
+  <text x="540" y="170" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="32"
+        font-weight="bold"
+        fill="#f26522">
+    Track Records
+  </text>
+
+  <!-- Accent Line -->
+  <rect x="140" y="200" width="800" height="5" fill="#f26522"/>
+
+  <!-- Table Headers -->
+  <g font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="bold" fill="#f26522">
+    <text x="100" y="260">Track</text>
+    <text x="520" y="260">Years</text>
+    <text x="650" y="260">Length</text>
+    <text x="760" y="260">Time</text>
+    <text x="880" y="260">Rider</text>
+  </g>
+
+  <line x1="80" y1="280" x2="1000" y2="280" stroke="#ffffff" stroke-width="2"/>
+
+  <!-- Row 1 -->
+  <g font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#ffffff">
+    <text x="100" y="350">National Speedway Stadium</text>
+    <text x="520" y="350">2016–present</text>
+    <text x="650" y="350">347m</text>
+    <text x="760" y="350">58.18s</text>
+    <text x="880" y="350">Dan Bewley</text>
+  </g>
+
+  <line x1="80" y1="380" x2="1000" y2="380" stroke="#2a3d55" stroke-width="1"/>
+
+  <!-- Row 2 -->
+  <g font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#ffffff">
+    <text x="100" y="450">Belle Vue Stadium (KML)</text>
+    <text x="520" y="450">1988–2015</text>
+    <text x="650" y="450">285m</text>
+    <text x="760" y="450">56.8s</text>
+    <text x="880" y="450">Jason Crump</text>
+  </g>
+
+  <line x1="80" y1="480" x2="1000" y2="480" stroke="#2a3d55" stroke-width="1"/>
+
+  <!-- Row 3 -->
+  <g font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#ffffff">
+    <text x="100" y="550">Hyde Road Stadium</text>
+    <text x="520" y="550">1929–1987</text>
+    <text x="650" y="550">382m</text>
+    <text x="760" y="550">66.4s</text>
+    <text x="880" y="550">Morton / Gundersen</text>
+  </g>
+
+  <!-- Bottom Accent -->
+  <rect x="140" y="950" width="800" height="4" fill="#f26522"/>
+
+</svg>
