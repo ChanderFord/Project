@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My Sports">
+<meta name="theme-color" content="#0a0c10">
+<title>My Sports</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0c10; --border:rgba(255,255,255,0.07);
+    --accent-red:#e8253c; --accent-blue:#1a73e8; --accent-pink:#c026d3;
+    --accent-wrexham:#e85d04; --accent-aces:#f5b800; --accent-f1:#e10600;
+    --accent-gold:#f5b800; --text:#f0f2f5; --muted:#6b7280; --live:#22c55e;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; overflow-x:hidden; padding-bottom:calc(24px + env(safe-area-inset-bottom,0px)); }
+  body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events:none; z-index:1000; opacity:0.4; }
+  header { position:sticky; top:0; z-index:100; padding:calc(env(safe-area-inset-top,16px) + 14px) 20px 14px; background:rgba(10,12,16,0.92); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--border); display:flex; align-items:baseline; justify-content:space-between; }
+  header h1 { font-family:'Bebas Neue',sans-serif; font-size:1.9rem; letter-spacing:0.06em; line-height:1; }
+  .header-clock { font-size:0.78rem; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; }
+  .feed { padding:16px 16px 0; display:flex; flex-direction:column; gap:10px; }
+  .section-label { font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); padding:8px 2px 2px; }
+  .section-divider { height:1px; background:var(--border); margin:6px 0 0; }
+  .sport-card { border-radius:16px; padding:20px 22px; position:relative; overflow:hidden; border:1px solid var(--border); animation:slideUp 0.35s ease both; }
+  .sport-card.football { background:linear-gradient(135deg,#1a080a,#1e0d10 60%,#111318); border-color:rgba(232,37,60,0.2); }
+  .sport-card.hockey   { background:linear-gradient(135deg,#060e1c,#0b1628 60%,#111318); border-color:rgba(26,115,232,0.2); }
+  .sport-card.women    { background:linear-gradient(135deg,#160818,#1c0d20 60%,#111318); border-color:rgba(192,38,211,0.2); }
+  .sport-card.wrexham  { background:linear-gradient(135deg,#160a02,#1e0f04 60%,#111318); border-color:rgba(232,93,4,0.2); }
+  .sport-card.aces     { background:linear-gradient(135deg,#141000,#1c1800 60%,#111318); border-color:rgba(245,184,0,0.2); }
+  .sport-card.f1       { background:linear-gradient(135deg,#1a0000,#1e0505 60%,#111318); border-color:rgba(225,6,0,0.2); }
+  .sport-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:16px 16px 0 0; }
+  .sport-card.football::before { background:var(--accent-red); }
+  .sport-card.hockey::before   { background:var(--accent-blue); }
+  .sport-card.women::before    { background:var(--accent-pink); }
+  .sport-card.wrexham::before  { background:var(--accent-wrexham); }
+  .sport-card.aces::before     { background:var(--accent-aces); }
+  .sport-card.f1::before       { background:var(--accent-f1); }
+  .sport-card::after { content:attr(data-icon); position:absolute; right:12px; bottom:-10px; font-size:5rem; opacity:0.06; pointer-events:none; line-height:1; }
+  .card-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .card-label { font-size:0.58rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); }
+  .card-cd { font-family:'Bebas Neue',sans-serif; font-size:0.9rem; letter-spacing:0.1em; padding:3px 10px; border-radius:6px; }
+  .football .card-cd { background:rgba(232,37,60,0.12); color:var(--accent-red); border:1px solid rgba(232,37,60,0.3); }
+  .hockey   .card-cd { background:rgba(26,115,232,0.12); color:#5a9dff;           border:1px solid rgba(26,115,232,0.3); }
+  .women    .card-cd { background:rgba(192,38,211,0.12); color:#e879f9;           border:1px solid rgba(192,38,211,0.3); }
+  .wrexham  .card-cd { background:rgba(232,93,4,0.12);   color:#fb923c;           border:1px solid rgba(232,93,4,0.3); }
+  .aces     .card-cd { background:rgba(245,184,0,0.12);  color:#fde047;           border:1px solid rgba(245,184,0,0.3); }
+  .f1       .card-cd { background:rgba(225,6,0,0.12);    color:#ff6b6b;           border:1px solid rgba(225,6,0,0.3); }
+  .card-title { font-family:'Bebas Neue',sans-serif; font-size:1.35rem; letter-spacing:0.04em; line-height:1.1; margin-bottom:5px; }
+  .card-time  { font-size:0.72rem; color:#a0aab8; margin-bottom:10px; }
+  .card-tv    { display:flex; gap:6px; flex-wrap:wrap; }
+  .tv-chip { display:inline-flex; align-items:center; gap:4px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:6px; padding:3px 9px; font-size:0.68rem; font-weight:600; color:var(--text); }
+  .today-badge { background:var(--accent-gold); color:#0a0c10; font-size:0.58rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; padding:2px 7px; border-radius:4px; margin-left:6px; }
+  .live-overlay { position:absolute; inset:0; border-radius:16px; display:flex; flex-direction:column; justify-content:center; padding:18px 22px; z-index:10; opacity:0; pointer-events:none; transition:opacity 0.4s ease; }
+  .sport-card.is-live .live-overlay { opacity:1; pointer-events:all; }
+  .sport-card.is-live .card-top, .sport-card.is-live .card-title, .sport-card.is-live .card-time, .sport-card.is-live .card-tv { opacity:0.06; pointer-events:none; transition:opacity 0.4s; }
+  .football.is-live .live-overlay { background:linear-gradient(135deg,rgba(20,4,6,0.97),rgba(26,8,10,0.95)); }
+  .hockey.is-live   .live-overlay { background:linear-gradient(135deg,rgba(4,10,22,0.97),rgba(6,14,28,0.95)); }
+  .women.is-live    .live-overlay { background:linear-gradient(135deg,rgba(16,4,20,0.97),rgba(22,8,26,0.95)); }
+  .wrexham.is-live  .live-overlay { background:linear-gradient(135deg,rgba(18,6,0,0.97),rgba(24,10,2,0.95)); }
+  .aces.is-live     .live-overlay { background:linear-gradient(135deg,rgba(14,12,0,0.97),rgba(20,17,0,0.95)); }
+  .f1.is-live       .live-overlay { background:linear-gradient(135deg,rgba(20,0,0,0.97),rgba(26,4,4,0.95)); }
+  .live-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .live-badge { display:inline-flex; align-items:center; gap:6px; font-size:0.62rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:var(--live); background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.3); border-radius:6px; padding:3px 10px; }
+  .live-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--live); animation:pulse 1.4s infinite; }
+  .live-minute { font-family:'Bebas Neue',sans-serif; font-size:0.88rem; letter-spacing:0.1em; color:var(--muted); }
+  .live-score-row { display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:12px; }
+  .live-team { flex:1; text-align:center; }
+  .live-team-name { font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+  .live-score { font-family:'Bebas Neue',sans-serif; font-size:2.8rem; letter-spacing:0.04em; line-height:1; }
+  .live-vs { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; color:var(--muted); letter-spacing:0.1em; }
+  .prob-row { display:flex; gap:4px; height:26px; border-radius:8px; overflow:hidden; margin-bottom:6px; }
+  .prob-seg { display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:0.8rem; letter-spacing:0.06em; transition:width 0.8s ease; min-width:26px; }
+  .prob-seg.home { background:rgba(232,37,60,0.35); color:#ffaab5; border-radius:8px 0 0 8px; }
+  .prob-seg.draw { background:rgba(245,184,0,0.25); color:#ffe47a; }
+  .prob-seg.away { background:rgba(26,115,232,0.35); color:#9ac5ff; border-radius:0 8px 8px 0; }
+  .hockey  .prob-seg.home { background:rgba(26,115,232,0.4); color:#9ac5ff; }
+  .hockey  .prob-seg.away { background:rgba(232,37,60,0.25); color:#ffaab5; }
+  .women   .prob-seg.home { background:rgba(192,38,211,0.4); color:#f0abfc; }
+  .wrexham .prob-seg.home { background:rgba(232,93,4,0.4); color:#fdba74; }
+  .wrexham .prob-seg.away { background:rgba(100,116,139,0.3); color:#cbd5e1; }
+  .aces    .prob-seg.home { background:rgba(245,184,0,0.4); color:#fde047; }
+  .aces    .prob-seg.away { background:rgba(100,116,139,0.3); color:#cbd5e1; }
+  .f1      .prob-seg.home { background:rgba(225,6,0,0.4); color:#fca5a5; }
+  .f1      .prob-seg.away { background:rgba(100,116,139,0.3); color:#cbd5e1; }
+  .prob-labels { display:flex; justify-content:space-between; font-size:0.6rem; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; }
+  .live-sim-note { font-size:0.56rem; color:rgba(255,255,255,0.2); text-align:center; letter-spacing:0.12em; text-transform:uppercase; margin-top:6px; }
+  @keyframes goalFlash { 0%{transform:scale(1);} 20%{transform:scale(1.4);color:#fff;} 100%{transform:scale(1);} }
+  .goal-flash { animation:goalFlash 0.5s ease; }
+  @keyframes slideUp { from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:translateY(0);} }
+  @keyframes pulse   { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(0.7);} }
+  .is-finished .live-badge::before { animation: none; opacity: 0.4; }
+  .is-finished .live-badge { opacity: 0.5; }
+  .is-finished .prob-labels { display: none; }
+  .footer-note { text-align:center; font-size:0.68rem; color:var(--muted); padding:20px 20px 8px; letter-spacing:0.05em; }
+</style>
+</head>
+<body>
+<header>
+  <h1>My Sports</h1>
+  <span class="header-clock" id="clock"></span>
+</header>
+<div class="feed" id="feed"></div>
+<div class="footer-note">All times GMT &nbsp;&middot;&nbsp; Games removed 12h after full time &nbsp;&middot;&nbsp; TV subject to change</div>
+<script src="config.js"></script>
+<script>
+// ─────────────────────────────────────────────────────────────
+// FIXTURE DATA — edit this to update fixtures
+// expiry = kickoffUTC + durationMins + 12h buffer (auto-calculated)
+// ─────────────────────────────────────────────────────────────
+const ALL_FIXTURES = {
+  mu: {
+    label: '⚽ Manchester United',
+    theme: 'football',
+    icon: '⚽',
+    sportLabel: 'Football',
+    games: [
+      { id:'mu1', kickoff:'2026-03-01T14:00:00Z', duration:90, home:'Man United',       away:'Crystal Palace',  venue:'Old Trafford, Manchester',           competition:'Premier League · GW28', tvUK:'Sky Sports',             tvUS:'USA Network', sport:'football' },
+      { id:'mu2', kickoff:'2026-03-04T20:15:00Z', duration:90, home:'Newcastle United', away:'Man United',      venue:'St. James\' Park, Newcastle',        competition:'Premier League · GW29', tvUK:'TNT Sports',             tvUS:'Peacock',     sport:'football' },
+      { id:'mu3', kickoff:'2026-03-15T14:00:00Z', duration:90, home:'Man United',       away:'Aston Villa',     venue:'Old Trafford, Manchester',           competition:'Premier League · GW30', tvUK:'Sky Sports',             tvUS:'USA Network', sport:'football' },
+      { id:'mu4', kickoff:'2026-03-20T20:00:00Z', duration:90, home:'Bournemouth',      away:'Man United',      venue:'Vitality Stadium, Bournemouth',      competition:'Premier League · GW31', tvUK:'Sky Sports',             tvUS:'USA Network', sport:'football' },
+    ]
+  },
+  wrx: {
+    label: '🏴󠁧󠁢󠁷󠁬󠁳󠁿 Wrexham AFC',
+    theme: 'wrexham',
+    icon: '⚽',
+    sportLabel: 'Championship',
+    games: [
+      { id:'wrx0', kickoff:'2026-02-24T19:45:00Z', duration:90, home:'Wrexham',           away:'Portsmouth', venue:'STōk Cae Ras, Wrexham',  competition:'EFL Championship',   tvUK:'Sky Sports+',           tvUS:'Paramount+', sport:'football' },
+      { id:'wrx1', kickoff:'2026-02-28T15:00:00Z', duration:90, home:'Charlton Athletic', away:'Wrexham',    venue:'The Valley, London',          competition:'EFL Championship',   tvUK:'Sky Sports',            tvUS:'Paramount+', sport:'football' },
+      { id:'wrx2', kickoff:'2026-03-07T17:45:00Z', duration:90, home:'Wrexham',           away:'Chelsea',    venue:'STōk Cae Ras, Wrexham',  competition:'FA Cup · 5th Round', tvUK:'TNT Sports 2 / BBC One', tvUS:'ESPN+',  sport:'football' },
+      { id:'wrx3', kickoff:'2026-03-10T19:45:00Z', duration:90, home:'Wrexham',           away:'Hull City',  venue:'STōk Cae Ras, Wrexham',  competition:'EFL Championship',   tvUK:'Sky Sports+',           tvUS:'Paramount+', sport:'football' },
+    ]
+  },
+  nyr: {
+    label: '🏒 New York Rangers',
+    theme: 'hockey',
+    icon: '🏒',
+    sportLabel: 'NHL',
+    games: [
+      { id:'nyr0', kickoff:'2026-02-27T01:00:00Z', duration:65, home:'NY Rangers', away:'Philadelphia Flyers',   venue:'Madison Square Garden, New York', competition:'NHL · Metropolitan Division', tvUK:'Premier Sports', tvUS:'ESPN',        sport:'hockey' },
+      { id:'nyr1', kickoff:'2026-02-28T17:30:00Z', duration:65, home:'NY Rangers', away:'Pittsburgh Penguins',   venue:'Madison Square Garden, New York', competition:'NHL · Metropolitan Division', tvUK:'Premier Sports', tvUS:'ABC',         sport:'hockey' },
+      { id:'nyr2', kickoff:'2026-03-03T00:00:00Z', duration:65, home:'NY Rangers', away:'Columbus Blue Jackets', venue:'Madison Square Garden, New York', competition:'NHL · Metropolitan Division', tvUK:'Premier Sports', tvUS:'MSG Network', sport:'hockey' },
+      { id:'nyr3', kickoff:'2026-03-06T00:00:00Z', duration:65, home:'NY Rangers', away:'Toronto Maple Leafs',   venue:'Madison Square Garden, New York', competition:'NHL · Metropolitan Division', tvUK:'Premier Sports', tvUS:'ESPN+',       sport:'hockey' },
+      { id:'nyr4', kickoff:'2026-03-11T00:00:00Z', duration:65, home:'NY Rangers', away:'Calgary Flames',        venue:'Madison Square Garden, New York', competition:'NHL · Metropolitan Division', tvUK:'Premier Sports', tvUS:'ESPN+',       sport:'hockey' },
+    ]
+  },
+  bva: {
+    label: '🏍️ Belle Vue Aces',
+    theme: 'aces',
+    icon: '🏍️',
+    sportLabel: 'Speedway',
+    games: [
+      { id:'bva0', kickoff:'2026-03-16T19:00:00Z', duration:120, home:'Belle Vue Aces', away:'Invitational Field', venue:'National Speedway Stadium, Manchester', competition:'Peter Craven Memorial Trophy', tvUK:'BSN / Belle Vue TV', tvUS:'TBC', sport:'speedway' },
+      { id:'bva1', kickoff:'2026-03-23T19:00:00Z', duration:120, home:'Belle Vue Aces', away:'Ipswich Witches',    venue:'National Speedway Stadium, Manchester', competition:'SGB Premiership KO Cup',         tvUK:'BSN',               tvUS:'TBC', sport:'speedway' },
+      { id:'bva2', kickoff:'2026-03-30T19:00:00Z', duration:120, home:'Belle Vue Aces', away:'Sheffield Tigers',   venue:'National Speedway Stadium, Manchester', competition:'SGB Premiership',               tvUK:'BSN',               tvUS:'TBC', sport:'speedway' },
+      { id:'bva3', kickoff:'2026-04-06T19:00:00Z', duration:120, home:'Belle Vue Aces', away:'Leicester Lions',    venue:'National Speedway Stadium, Manchester', competition:'SGB Premiership',               tvUK:'BSN',               tvUS:'TBC', sport:'speedway' },
+    ]
+  },
+  f1: {
+    label: '🏎️ Formula 1',
+    theme: 'f1',
+    icon: '🏎️',
+    sportLabel: 'Formula 1',
+    games: [
+      { id:'f10', kickoff:'2026-03-08T04:00:00Z', duration:120, home:'Australian Grand Prix', away:'Albert Park, Melbourne', venue:'Albert Park Circuit, Melbourne', competition:'F1 World Championship · Round 1', tvUK:'Sky Sports F1 / Channel 4', tvUS:'Apple TV+', sport:'f1' },
+      { id:'f11', kickoff:'2026-03-15T07:00:00Z', duration:120, home:'Chinese Grand Prix',    away:'Shanghai International', venue:'Shanghai International Circuit',  competition:'F1 World Championship · Round 2', tvUK:'Sky Sports F1',             tvUS:'Apple TV+', sport:'f1' },
+      { id:'f12', kickoff:'2026-03-29T05:00:00Z', duration:120, home:'Japanese Grand Prix',   away:'Suzuka Circuit',         venue:'Suzuka Circuit, Japan',           competition:'F1 World Championship · Round 3', tvUK:'Sky Sports F1',             tvUS:'Apple TV+', sport:'f1' },
+    ]
+  },
+  muW: {
+    label: '⚽ Manchester United Women',
+    theme: 'women',
+    icon: '⚽',
+    sportLabel: "Women's Football",
+    games: [
+      { id:'muW0', kickoff:'2026-03-15T14:15:00Z', duration:90, home:'Chelsea Women',  away:'Man Utd Women', venue:'Stadium:mk, Milton Keynes',               competition:"Women's League Cup Final",      tvUK:'Sky Sports / BBC One', tvUS:'ESPN+',      sport:'football' },
+      { id:'muW1', kickoff:'2026-03-18T19:15:00Z', duration:90, home:'West Ham Women', away:'Man Utd Women', venue:'Chigwell Construction Stadium, Dagenham',  competition:"Women's Super League",          tvUK:'Sky Sports',           tvUS:'ESPN+',      sport:'football' },
+      { id:'muW2', kickoff:'2026-03-21T12:00:00Z', duration:90, home:'Man Utd Women',  away:'Everton Women', venue:'Progress With Unity Stadium, Leigh',       competition:"Women's Super League",          tvUK:'Sky Sports',           tvUS:'ESPN+',      sport:'football' },
+      { id:'muW3', kickoff:'2026-03-25T19:00:00Z', duration:90, home:'Man Utd Women',  away:'Bayern Munich', venue:'Old Trafford, Manchester',                 competition:"UEFA Women's CL · QF 1st Leg", tvUK:'Sky Sports',      tvUS:'Paramount+', sport:'football' },
+      { id:'muW4', kickoff:'2026-03-29T14:00:00Z', duration:90, home:'Man Utd Women',  away:'Man City Women',venue:'Old Trafford, Manchester',                 competition:"Women's Super League",          tvUK:'Sky Sports',           tvUS:'ESPN+',      sport:'football' },
+    ]
+  },
+  mc: {
+    label: '🟦 Manchester City',
+    theme: 'football',
+    icon: '🟦',
+    sportLabel: 'Football',
+    nextOnly: true,
+    games: [
+      { id:'mc0', kickoff:'2026-02-28T17:30:00Z', duration:90, home:'Leeds United', away:'Man City',       venue:'Elland Road, Leeds',            competition:'Premier League · GW28', tvUK:'Sky Sports', tvUS:'Peacock',     sport:'football' },
+      { id:'mc1', kickoff:'2026-03-04T19:30:00Z', duration:90, home:'Man City',     away:'Nottm Forest',   venue:'Etihad Stadium, Manchester',    competition:'Premier League · GW29', tvUK:'TNT Sports', tvUS:'Peacock',     sport:'football' },
+      { id:'mc2', kickoff:'2026-03-07T20:00:00Z', duration:90, home:'Newcastle',    away:'Man City',       venue:'St James Park, Newcastle',      competition:'FA Cup · 5th Round',    tvUK:'TNT Sports', tvUS:'ESPN+',       sport:'football' },
+      { id:'mc3', kickoff:'2026-03-14T12:30:00Z', duration:90, home:'West Ham',     away:'Man City',       venue:'London Stadium, London',        competition:'Premier League · GW30', tvUK:'TNT Sports', tvUS:'Peacock',     sport:'football' },
+      { id:'mc4', kickoff:'2026-03-21T15:00:00Z', duration:90, home:'Man City',     away:'Crystal Palace', venue:'Etihad Stadium, Manchester',    competition:'Premier League · GW31', tvUK:'Sky Sports', tvUS:'USA Network', sport:'football' },
+    ]
+  }
+};
+
+// 12-hour buffer after full time before a game is removed
+const EXPIRY_BUFFER_MS = 12 * 60 * 60 * 1000;
+
+// ─────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────
+function isExpired(game) {
+  const end = new Date(game.kickoff).getTime() + game.duration * 60000;
+  return Date.now() > end + EXPIRY_BUFFER_MS;
+}
+
+function isLiveNow(game) {
+  const start = new Date(game.kickoff).getTime();
+  const end   = start + game.duration * 60000;
+  return Date.now() >= start && Date.now() < end;
+}
+
+function fmtKickoff(isoUTC) {
+  const d = new Date(isoUTC);
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MONS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const h = d.getUTCHours(), m = String(d.getUTCMinutes()).padStart(2,'0');
+  const h12 = h%12||12, ampm = h>=12?'PM':'AM';
+  return `${DAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONS[d.getUTCMonth()]} · ${h12}:${m} ${ampm} GMT`;
+}
+
+function dayBadge(isoUTC) {
+  const d = new Date(isoUTC), n = new Date();
+  if (d.toDateString() === n.toDateString())
+    return `<span class="today-badge" style="margin-left:6px">Today</span>`;
+  const tom = new Date(n); tom.setDate(n.getDate()+1);
+  if (d.toDateString() === tom.toDateString())
+    return `<span class="today-badge" style="margin-left:6px">Tomorrow</span>`;
+  return '';
+}
+
+function formatCountdown(kickoff, durationMins, sport) {
+  const now = Date.now(), start = new Date(kickoff).getTime();
+  const end = start + durationMins * 60000;
+  const finishedLabel = sport === 'f1' ? 'CHEQUERED' : sport === 'speedway' ? 'FINAL' : 'FT';
+  if (now >= end)   return finishedLabel;
+  if (now >= start) return 'LIVE';
+  const diff = start - now;
+  const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000);
+  if (h > 48) { const d=Math.floor(h/24); return `IN ${d}D ${h%24}H`; }
+  return h > 0 ? `IN ${h}H ${m}M` : `IN ${m}M`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────────────────────
+function getUpcoming(teamKey) {
+  return ALL_FIXTURES[teamKey].games.filter(g => !isExpired(g));
+}
+
+function render() {
+  const teamKeys = Object.keys(ALL_FIXTURES);
+  const in7days  = Date.now() + 7 * 24 * 3600 * 1000;
+  const soon = teamKeys.flatMap(key => {
+    const team = ALL_FIXTURES[key];
+    return getUpcoming(key)
+      .filter(game => new Date(game.kickoff).getTime() <= in7days)
+      .map(game => ({ key, team, game }));
+  }).sort((a, b) => new Date(a.game.kickoff) - new Date(b.game.kickoff));
+  const soonIds = new Set(soon.map(x => x.game.id));
+  const laterAll = teamKeys.map(key => {
+    const team = ALL_FIXTURES[key];
+    if (team.nextOnly) return null;
+    const next = getUpcoming(key).find(game => !soonIds.has(game.id));
+    return next ? { key, team, game: next } : null;
+  }).filter(Boolean).sort((a, b) => new Date(a.game.kickoff) - new Date(b.game.kickoff));
+  function cardHTML({ team, game }, showTV) {
+    const title = game.sport === 'f1' ? game.home : game.home + ' vs ' + game.away;
+    const comp = game.competition.split('\u00B7')[0].trim();
+    const tv = showTV
+      ? '<div class="card-tv"><span class="tv-chip">\uD83C\uDDEC\uD83C\uDDE7 ' + game.tvUK + '</span><span class="tv-chip">\uD83C\uDDFA\uD83C\uDDF8 ' + game.tvUS + '</span></div>'
+      : '';
+    return '<div class="sport-card ' + team.theme + '" data-icon="' + team.icon + '" data-gid="' + game.id + '">'
+         + '<div class="card-top">'
+         + '<span class="card-label">' + team.label + ' \u00B7 ' + comp + '</span>'
+         + '<span class="card-cd" id="cd-' + game.id + '"></span>'
+         + '</div>'
+         + '<div class="card-title">' + title + '</div>'
+         + '<div class="card-time">' + fmtKickoff(game.kickoff) + ' ' + dayBadge(game.kickoff) + '<br>' + game.venue + '</div>'
+         + tv
+         + '</div>';
+  }
+  let html = '';
+  if (soon.length) {
+    html += '<div class="section-label">\uD83D\uDCC5 Next 7 Days</div>';
+    soon.forEach(x => { html += cardHTML(x, true); });
+  }
+  if (laterAll.length) {
+    if (soon.length) html += '<div class="section-divider"></div>';
+    html += '<div class="section-label">\uD83D\uDDD3\uFE0F Coming Up</div>';
+    laterAll.forEach(x => { html += cardHTML(x, false); });
+  }
+  if (!soon.length && !laterAll.length) {
+    html = '<div style="color:var(--muted);text-align:center;padding:60px 0;font-size:0.9rem">No upcoming fixtures scheduled</div>';
+  }
+  document.getElementById('feed').innerHTML = html;
+  injectOverlays();
+}
+
+// ─────────────────────────────────────────────────────────────
+// FOOTBALL-DATA.ORG LIVE SCORES
+// ─────────────────────────────────────────────────────────────
+const FD_API_KEY = SITE_CONFIG.footballDataApiKey;
+
+// football-data.org team IDs for every team in our fixtures
+const FD_TEAM_ID = {
+  'Man United':        66,
+  'Newcastle United':  67,
+  'Crystal Palace':   354,
+  'Aston Villa':       58,
+  'Bournemouth':     1044,
+  'Wrexham':         8601,
+  'Charlton Athletic': 60,
+  'Chelsea':           61,
+  'Hull City':        322,
+  'Portsmouth':       650,
+  'Man City':          65,
+  'Leeds United':     341,
+  'Nottm Forest':     351,
+  'Newcastle':         67,  // FA Cup fixture uses shorter name
+  'West Ham':         563,
+};
+
+// Competitions to query (free tier)
+const FD_COMPS = 'PL,ELC,FAC';
+
+// Cache: date string -> API response (avoid re-fetching same day)
+const fdDayCache = {};
+
+// Per-game state: gid -> { homeScore, awayScore, status, minute, isReal, pollingActive }
+const fdScores = {};
+
+// Status values that mean the match is over
+const FD_FINISHED_STATUSES = new Set(['FINISHED','AWARDED','CANCELLED','POSTPONED','SUSPENDED']);
+
+// Status values that mean the match is currently live
+const FD_LIVE_STATUSES = new Set(['IN_PLAY','PAUSED','EXTRA_TIME','PENALTY']);
+
+async function fdFetchDay(dateStr) {
+  if (fdDayCache[dateStr]) return fdDayCache[dateStr];
+  const url = `https://api.football-data.org/v4/matches?dateFrom=${dateStr}&dateTo=${dateStr}&competitions=${FD_COMPS}`;
+  try {
+    const res = await fetch(url, { headers: { 'X-Auth-Token': FD_API_KEY } });
+    if (!res.ok) { console.warn('FD API error:', res.status); return null; }
+    const data = await res.json();
+    // Only cache if the day is fully in the past (all matches finished)
+    const allDone = data.matches.every(m => FD_FINISHED_STATUSES.has(m.status));
+    if (allDone) fdDayCache[dateStr] = data;
+    return data;
+  } catch (e) {
+    console.warn('FD fetch failed:', e);
+    return null;
+  }
+}
+
+function fdDateStr(isoUTC) {
+  // Returns YYYY-MM-DD in UTC from a kickoff ISO string
+  return isoUTC.slice(0, 10);
+}
+
+async function fdPollGame(game) {
+  // Only for football games with a known FD team ID
+  if (game.sport !== 'football') return;
+  const homeId = FD_TEAM_ID[game.home];
+  const awayId = FD_TEAM_ID[game.away];
+  if (!homeId && !awayId) return; // can't identify either team
+
+  const dateStr = fdDateStr(game.kickoff);
+  const data = await fdFetchDay(dateStr);
+  if (!data) return;
+
+  // Find this match in the day's results
+  const match = data.matches.find(m => {
+    const mHome = m.homeTeam.id;
+    const mAway = m.awayTeam.id;
+    return (homeId && mHome === homeId) || (awayId && mAway === awayId);
+  });
+  if (!match) return;
+
+  const s = fdScores[game.id] || {};
+  s.isReal = true;
+
+  if (FD_FINISHED_STATUSES.has(match.status)) {
+    s.homeScore  = match.score.fullTime.home ?? 0;
+    s.awayScore  = match.score.fullTime.away ?? 0;
+    s.status     = 'FINISHED';
+    s.minute     = null;
+    s.pollingActive = false; // stop polling
+  } else if (FD_LIVE_STATUSES.has(match.status)) {
+    s.homeScore  = match.score.fullTime.home ?? 0;
+    s.awayScore  = match.score.fullTime.away ?? 0;
+    s.status     = match.status;
+    // minute is sometimes in match.minute (v4 omits it on PAUSED)
+    s.minute     = match.minute ?? null;
+    s.extraTime  = match.status === 'EXTRA_TIME';
+    s.penalty    = match.status === 'PENALTY';
+    s.pollingActive = true;
+    s.htScore    = match.status === 'PAUSED'
+      ? { home: match.score.halfTime.home, away: match.score.halfTime.away }
+      : null;
+  } else {
+    // TIMED / SCHEDULED — not started yet, don't update
+    s.pollingActive = false;
+  }
+
+  fdScores[game.id] = s;
+}
+
+// Called from tick() for each visible football game
+// Polls only if: within live window OR recently finished (within 15 min)
+function fdShouldPoll(game) {
+  if (game.sport !== 'football') return false;
+  const now    = Date.now();
+  const start  = new Date(game.kickoff).getTime();
+  const window = 15 * 60 * 1000;  // 15 min before kick
+  // Max match duration: 90 + 30 ET + 10 penalties + 20 stoppages = ~150 min
+  const maxEnd = start + 150 * 60 * 1000;
+  // If already confirmed finished, no need to poll again
+  if (fdScores[game.id]?.status === 'FINISHED') return false;
+  return now >= start - window && now <= maxEnd;
+}
+
+// Returns the display minute string for a real FD match
+function fdMinuteStr(s) {
+  if (!s) return '';
+  if (s.status === 'PAUSED') {
+    const ht = s.htScore;
+    return ht ? 'HT  ' + ht.home + '–' + ht.away : 'HT';
+  }
+  if (s.status === 'EXTRA_TIME') return s.minute ? s.minute + "' (ET)" : 'ET';
+  if (s.status === 'PENALTY')    return 'Penalties';
+  if (s.status === 'FINISHED')   return 'FT';
+  return s.minute ? s.minute + "'" : '';
+}
+
+
+// ─────────────────────────────────────────────────────────────
+// LIVE OVERLAYS
+// ─────────────────────────────────────────────────────────────
+const liveState = {};
+
+function injectOverlays() {
+  document.querySelectorAll('[data-gid]').forEach(card => {
+    const gid  = card.dataset.gid;
+    const game = findGame(gid);
+    if (!game) return;
+    const ov = document.createElement('div');
+    ov.className = 'live-overlay';
+    const noDrawSport = game.sport === 'hockey' || game.sport === 'speedway' || game.sport === 'f1';
+    const drawLabel   = noDrawSport ? '' : `<span>Draw</span>`;
+    const homeLabel   = game.sport === 'f1'       ? 'P1 Leader' : game.home;
+    const awayLabel_  = game.sport === 'f1'       ? 'P2 / Field' : game.away;
+    const winLabel1 = game.sport === 'f1' ? 'Leader Wins' : `${homeLabel} Win`;
+    const winLabel2 = game.sport === 'f1' ? 'Field Wins'  : `${awayLabel_} Win`;
+    ov.innerHTML = `
+      <div class="live-top">
+        <span class="live-badge">Live</span>
+        <span class="live-minute" id="min-${gid}"></span>
+      </div>
+      <div class="live-score-row">
+        <div class="live-team"><div class="live-team-name">${homeLabel}</div><div class="live-score" id="hs-${gid}">0</div></div>
+        <div class="live-vs">—</div>
+        <div class="live-team"><div class="live-team-name">${awayLabel_}</div><div class="live-score" id="as-${gid}">0</div></div>
+      </div>
+      <div class="prob-row">
+        <div class="prob-seg home" id="ph-${gid}" style="width:40%">40%</div>
+        <div class="prob-seg draw" id="pd-${gid}" style="width:25%;${noDrawSport?'display:none':''}">25%</div>
+        <div class="prob-seg away" id="pa-${gid}" style="width:35%">35%</div>
+      </div>
+      <div class="prob-labels"><span>${winLabel1}</span>${drawLabel}<span>${winLabel2}</span></div>
+      <div class="live-sim-note" id="src-${gid}"></div>`;
+    card.appendChild(ov);
+  });
+}
+
+function findGame(gid) {
+  for (const key of Object.keys(ALL_FIXTURES)) {
+    const g = ALL_FIXTURES[key].games.find(g => g.id === gid);
+    if (g) return g;
+  }
+  return null;
+}
+
+function findTheme(gid) {
+  for (const key of Object.keys(ALL_FIXTURES)) {
+    if (ALL_FIXTURES[key].games.find(g => g.id === gid)) return ALL_FIXTURES[key].theme;
+  }
+  return 'football';
+}
+
+// ─────────────────────────────────────────────────────────────
+// WIN PROBABILITY — calculated locally from score + time
+// Returns { homeWin, draw, awayWin } summing to 100
+// ─────────────────────────────────────────────────────────────
+function calcProbabilities(homeScore, awayScore, elapsed, duration, sport) {
+  const progress    = Math.min(elapsed / duration, 1);  // 0→1 through the match
+  const remaining   = 1 - progress;                      // how much time is left
+  const scoreDiff   = homeScore - awayScore;             // positive = home leading
+
+  // Base rates (home advantage built in)
+  let homeWin = 45, draw = 25, awayWin = 30;
+
+  // Score influence: each goal shifts probability, diminishing as time runs out
+  // A goal with 90 mins left matters less than one with 5 mins left
+  const goalWeight = 20 + 40 * progress; // 20–60 pts per goal swing
+  homeWin += scoreDiff * goalWeight;
+  awayWin -= scoreDiff * goalWeight;
+
+  // As time passes with no goals, draw probability shifts
+  if (scoreDiff === 0) {
+    // Scoreless: draw becomes more likely as game progresses
+    draw = Math.round(25 + 30 * progress);
+    homeWin = Math.round((100 - draw) * 0.55);
+    awayWin = 100 - draw - homeWin;
+  }
+
+  // Clamp all values
+  homeWin = Math.max(3, Math.min(94, Math.round(homeWin)));
+  awayWin = Math.max(3, Math.min(94, Math.round(awayWin)));
+
+  // Hockey has no draw
+  if (sport === 'hockey') {
+    draw = 0;
+    homeWin = Math.max(3, Math.min(97, homeWin + 12));
+    awayWin = 100 - homeWin;
+  }
+
+  // Speedway has no draw either — heat-by-heat aggregate points
+  if (sport === 'speedway') {
+    draw = 0;
+    homeWin = Math.max(3, Math.min(97, homeWin + 15));
+    awayWin = 100 - homeWin;
+  }
+
+  // F1 — no draw, "home" = race leader probability (for fun)
+  if (sport === 'f1') {
+    draw = 0;
+    homeWin = Math.max(3, Math.min(97, homeWin));
+    awayWin = 100 - homeWin;
+  }
+
+  if (sport !== 'hockey' && sport !== 'speedway' && sport !== 'f1') {
+    draw = Math.max(2, Math.min(60, Math.round(draw)));
+    const total = homeWin + draw + awayWin;
+    const diff  = 100 - total;
+    draw += diff;
+  }
+
+  // Final clamp & normalise
+  const sum = homeWin + draw + awayWin;
+  return {
+    homeWin: Math.round(homeWin * 100 / sum),
+    draw:    Math.round(draw    * 100 / sum),
+    awayWin: 100 - Math.round(homeWin * 100 / sum) - Math.round(draw * 100 / sum),
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
+// MATCH MINUTE display string
+// ─────────────────────────────────────────────────────────────
+function matchMinute(elapsed, duration, sport) {
+  if (sport === 'f1') {
+    const lap = Math.min(58, Math.floor(elapsed / 2) + 1);
+    return `Lap ${lap} / 58`;
+  }
+  if (sport === 'speedway') {
+    // 20 heats over ~2 hours; roughly 1 heat per 6 minutes
+    const heat = Math.min(20, Math.floor(elapsed / 6) + 1);
+    return `Heat ${heat}`;
+  }
+  if (sport === 'hockey') {
+    // Three 20-min periods
+    const period = elapsed < 20 ? 1 : elapsed < 40 ? 2 : 3;
+    const pMin   = elapsed % 20;
+    return `P${period}  ${String(pMin).padStart(2,'0')}:00`;
+  }
+  // Football: 45 min halves with ~15 min HT gap in elapsed time
+  if (elapsed <= 45) return `${elapsed}'`;
+  if (elapsed <= 60) return `HT`;   // 45–60 = half time window
+  const secondHalf = elapsed - 60;  // re-base after HT gap
+  return secondHalf <= 45 ? `${45 + secondHalf}'` : `90+${secondHalf - 45}'`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// TICK — runs every 60s for live updates, checks expiry too
+// ─────────────────────────────────────────────────────────────
+let lastExpiredCount = -1;
+let lastMinute       = {};  // track per-game last elapsed minute for score sim
+
+function tick() {
+  // Re-render if any game has newly expired
+  const expiredCount = Object.values(ALL_FIXTURES)
+    .flatMap(t => t.games)
+    .filter(g => isExpired(g)).length;
+
+  if (expiredCount !== lastExpiredCount) {
+    lastExpiredCount = expiredCount;
+    render();
+    return; // render() calls injectOverlays + restarts tick
+  }
+
+  const now = Date.now();
+
+  document.querySelectorAll('[data-gid]').forEach(card => {
+    const gid  = card.dataset.gid;
+    const game = findGame(gid);
+    if (!game) return;
+
+    const start   = new Date(game.kickoff).getTime();
+    const end     = start + game.duration * 60000;
+    const live    = now >= start && now < end;
+    const elapsed = Math.floor((now - start) / 60000);
+
+    // Always update countdown badge
+    const cdEl = document.getElementById(`cd-${gid}`);
+    if (cdEl) cdEl.textContent = formatCountdown(game.kickoff, game.duration, game.sport);
+
+    if (live) {
+      card.classList.add('is-live');
+
+      // ── Real score from football-data.org (football only) ──
+      if (fdShouldPoll(game)) fdPollGame(game); // async, updates fdScores[gid]
+
+      const fdS = fdScores[gid]; // may be undefined for non-football or before first poll
+      const useReal = fdS && fdS.isReal;
+
+      // Initialise sim state (used as fallback for non-football)
+      if (!liveState[gid]) {
+        liveState[gid] = { homeScore: 0, awayScore: 0 };
+        lastMinute[gid] = elapsed;
+      }
+
+      const s       = liveState[gid];
+      const prevMin = lastMinute[gid] ?? elapsed;
+
+      let prevHome, prevAway;
+
+      if (useReal) {
+        // ── Real data path ──────────────────────────────────
+        prevHome = s.homeScore;
+        prevAway = s.awayScore;
+        s.homeScore = fdS.homeScore ?? 0;
+        s.awayScore = fdS.awayScore ?? 0;
+      } else {
+        // ── Simulated data path (non-football or before first FD response) ──
+        const goalChance = game.sport === 'hockey' ? 0.046 : game.sport === 'speedway' ? 0.18 : 0.014;
+        prevHome = s.homeScore;
+        prevAway = s.awayScore;
+        if (elapsed > prevMin) {
+          for (let m = prevMin + 1; m <= elapsed; m++) {
+            if (Math.random() < goalChance) {
+              if (Math.random() < 0.6) s.homeScore++;
+              else s.awayScore++;
+            }
+          }
+          lastMinute[gid] = elapsed;
+        }
+      }
+
+      // ── Minute display ──────────────────────────────────────
+      const minEl = document.getElementById(`min-${gid}`);
+      if (minEl) minEl.textContent = useReal ? fdMinuteStr(fdS) : matchMinute(elapsed, game.duration, game.sport);
+
+      // ── Score display with goal flash ───────────────────────
+      const hs  = document.getElementById(`hs-${gid}`);
+      const as_ = document.getElementById(`as-${gid}`);
+      if (hs) {
+        if (s.homeScore !== prevHome) { hs.classList.remove('goal-flash'); void hs.offsetWidth; hs.classList.add('goal-flash'); }
+        hs.textContent = s.homeScore;
+      }
+      if (as_) {
+        if (s.awayScore !== prevAway) { as_.classList.remove('goal-flash'); void as_.offsetWidth; as_.classList.add('goal-flash'); }
+        as_.textContent = s.awayScore;
+      }
+
+      // ── Real score source badge ─────────────────────────────
+      const srcEl = document.getElementById(`src-${gid}`);
+      if (srcEl) srcEl.textContent = useReal ? '' : '';
+
+      // ── Probability bars ────────────────────────────────────
+      const probs = calcProbabilities(s.homeScore, s.awayScore, elapsed, game.duration, game.sport);
+      const ph = document.getElementById(`ph-${gid}`);
+      const pd = document.getElementById(`pd-${gid}`);
+      const pa = document.getElementById(`pa-${gid}`);
+      if (ph && pd && pa) {
+        ph.style.width = probs.homeWin + '%'; ph.textContent = probs.homeWin + '%';
+        pd.style.width = probs.draw    + '%'; pd.textContent = probs.draw    + '%';
+        pa.style.width = probs.awayWin + '%'; pa.textContent = probs.awayWin + '%';
+        pd.style.display = (game.sport === 'hockey' || game.sport === 'speedway' || game.sport === 'f1') ? 'none' : '';
+      }
+
+    } else {
+      // ── Show finished score overlay for recently ended football games ──────
+      const fdS = fdScores[gid];
+      if (fdS && fdS.status === 'FINISHED' && fdS.isReal) {
+        card.classList.add('is-live', 'is-finished');
+        const hs  = document.getElementById(`hs-${gid}`);
+        const as_ = document.getElementById(`as-${gid}`);
+        const minEl = document.getElementById(`min-${gid}`);
+        const srcEl = document.getElementById(`src-${gid}`);
+        if (hs)    hs.textContent  = fdS.homeScore;
+        if (as_)   as_.textContent = fdS.awayScore;
+        if (minEl) minEl.textContent = 'FT';
+        if (srcEl) srcEl.textContent = '';
+        // Hide prob bars for finished games
+        const ph = document.getElementById(`ph-${gid}`);
+        const pd = document.getElementById(`pd-${gid}`);
+        const pa = document.getElementById(`pa-${gid}`);
+        if (ph) ph.style.display = 'none';
+        if (pd) pd.style.display = 'none';
+        if (pa) pa.style.display = 'none';
+        // dim the live badge
+        const badge = card.querySelector('.live-badge');
+        if (badge) badge.style.opacity = '0.4';
+      } else {
+        card.classList.remove('is-live', 'is-finished');
+      }
+    }
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────
+function updateClock() {
+  const d = new Date();
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const h = d.getUTCHours(), m = String(d.getUTCMinutes()).padStart(2,'0');
+  const h12 = h % 12 || 12, ampm = h >= 12 ? 'PM' : 'AM';
+  document.getElementById('clock').textContent = DAYS[d.getUTCDay()] + '  ' + h12 + ':' + m + ' ' + ampm + ' GMT';
+}
+updateClock();
+setInterval(updateClock, 60000);
+render();
+tick();
+setInterval(tick, 60000);
+</script>
+</body>
+</html>
